@@ -5,15 +5,17 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Properties;
 
-@RestController
+@Controller
 public class FileUploadController {
 
     @Value("${kafka.bootstrap.servers}")
@@ -21,6 +23,11 @@ public class FileUploadController {
 
     @Value("${kafka.topic}")
     private String kafkaTopic;
+
+    @GetMapping("/upload")
+    public String showUploadForm(Model model) {
+        return "uploadForm";
+    }
 
     @PostMapping("/upload")
     public String uploadFile(@RequestParam("file") MultipartFile file) {
@@ -36,9 +43,9 @@ public class FileUploadController {
             producer.send(new ProducerRecord<>(kafkaTopic, file.getOriginalFilename(), fileBytes));
             producer.close();
 
-            return "File uploaded and distributed to Kafka!";
+            return "redirect:/upload?success=File+uploaded+and+distributed+to+Kafka!";
         } catch (IOException e) {
-            return "Error uploading the file.";
+            return "redirect:/upload?error=Error+uploading+the+file.";
         }
     }
 }
